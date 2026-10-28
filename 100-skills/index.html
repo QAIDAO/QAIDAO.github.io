@@ -455,5 +455,76 @@ document.getElementById('q').addEventListener('input', e => { query = e.target.v
 more.addEventListener('click', () => { shown = problems.length; render(); });
 render();
 </script>
+
+<!-- 侧边快速导航 -->
+<style>
+#sidenav{position:fixed;z-index:30;font:14px/1.4 var(--sans)}
+#sidenav ol{list-style:none;margin:0;padding:0}
+#sidenav a{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:var(--r-control);color:var(--muted);text-decoration:none;transition:color .2s,background .2s}
+#sidenav a:hover{color:var(--ink);background:var(--accent-soft)}
+#sidenav a .n{font:500 11px/1 var(--mono);color:var(--faint);width:18px;flex:none}
+#sidenav a.on{color:var(--accent-ink);font-weight:600}
+#sidenav a.on .n{color:var(--accent)}
+#sidenav .sn-title{font:500 11px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--faint);padding:0 10px 10px}
+#sidenav .sn-bar{position:absolute;left:0;top:28px;bottom:0;width:2px;background:var(--rule);border-radius:2px}
+#sidenav .sn-bar i{display:block;width:100%;height:0;background:var(--accent);border-radius:2px}
+#sidenav .sn-toggle{display:none}
+/* 宽屏：常驻左侧 */
+@media (min-width:1500px){
+  #sidenav{top:50%;transform:translateY(-50%);left:max(20px,calc((100vw - 1180px)/2 - 190px));width:170px}
+  #sidenav nav{position:relative;padding-left:12px}
+}
+/* 窄屏：右下角按钮展开 */
+@media (max-width:1499px){
+  #sidenav{right:20px;bottom:20px}
+  #sidenav .sn-toggle{display:inline-flex;align-items:center;gap:8px;margin-left:auto;height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--rule-strong);background:var(--surface);color:var(--ink);font:500 14px/1 var(--sans);cursor:pointer;box-shadow:0 8px 24px -12px rgba(39,27,56,.45);backdrop-filter:blur(8px)}
+  #sidenav{display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+  #sidenav nav{order:-1;width:220px;padding:14px 8px 10px;border-radius:var(--r-panel);border:1px solid var(--rule);background:var(--canvas);box-shadow:0 18px 40px -18px rgba(39,27,56,.5);opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .2s,transform .2s var(--ease);position:relative}
+  #sidenav.open nav{opacity:1;transform:none;pointer-events:auto}
+  #sidenav .sn-bar{display:none}
+}
+@media (prefers-reduced-motion:reduce){#sidenav *{transition:none!important}}
+</style>
+<aside id="sidenav" aria-label="快速跳转">
+  <nav>
+    <div class="sn-title">目录</div>
+    <span class="sn-bar" aria-hidden="true"><i></i></span>
+    <ol>
+      <li><a href="#top"><span class="n">00</span>开篇</a></li>
+      <li><a href="#why"><span class="n">01</span>为什么值得做</a></li>
+      <li><a href="#anatomy"><span class="n">02</span>一道题长什么样</a></li>
+      <li><a href="#problems"><span class="n">03</span>题库</a></li>
+      <li><a href="#reference"><span class="n">04</span>现有参照</a></li>
+      <li><a href="#join"><span class="n">05</span>怎么参与</a></li>
+    </ol>
+  </nav>
+  <button class="sn-toggle" type="button" aria-expanded="false" aria-controls="sidenav">
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg>目录
+  </button>
+</aside>
+<script>
+(function(){
+  var root=document.getElementById('sidenav'); if(!root) return;
+  var links=[].slice.call(root.querySelectorAll('ol a'));
+  var secs=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1))});
+  var bar=root.querySelector('.sn-bar i'), btn=root.querySelector('.sn-toggle');
+  function update(){
+    var cur=0;
+    secs.forEach(function(s,i){ if(s && s.getBoundingClientRect().top<=Math.max(180,innerHeight*.3)) cur=i; });
+    if(window.innerHeight+window.scrollY>=document.documentElement.scrollHeight-4) cur=secs.length-1;
+    links.forEach(function(a,i){ a.classList.toggle('on',i===cur); if(i===cur) a.setAttribute('aria-current','true'); else a.removeAttribute('aria-current'); });
+    var max=document.documentElement.scrollHeight-window.innerHeight;
+    if(bar) bar.style.height=(max>0?Math.min(100,window.scrollY/max*100):0)+'%';
+  }
+  var ticking=false;
+  window.addEventListener('scroll',function(){ if(!ticking){ticking=true;requestAnimationFrame(function(){update();ticking=false;});} },{passive:true});
+  window.addEventListener('resize',update); update();
+  function setOpen(o){ root.classList.toggle('open',o); btn.setAttribute('aria-expanded',o?'true':'false'); }
+  btn.addEventListener('click',function(e){ e.stopPropagation(); setOpen(!root.classList.contains('open')); });
+  links.forEach(function(a){ a.addEventListener('click',function(){ setOpen(false); }); });
+  document.addEventListener('click',function(e){ if(!root.contains(e.target)) setOpen(false); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') setOpen(false); });
+})();
+</script>
 </body>
 </html>
